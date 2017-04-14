@@ -35,9 +35,9 @@ class Util{
             return ss.str();
         }
 
-        static void writeMsgToSock(int fd, void *buf, size_t len){
+        static void writeMsgToSock(int sockfd, void *buf, size_t len){
             int nwrite;
-            if((nwrite = write(fd, buf, len)) == -1){
+            if((nwrite = write(sockfd, buf, len)) == -1){
 #ifdef DEBUG
                 std::cout << "write error in Util" << std::endl;
 #endif /*DEBUG*/

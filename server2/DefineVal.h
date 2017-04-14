@@ -19,6 +19,7 @@
 struct clientMsg{
     int clientAcceptFd;
     char msg[RECVMAXSIZE];
+    int length;
     //TODO: should extend
 };
 

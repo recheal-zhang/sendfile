@@ -14,6 +14,8 @@
 #include <unistd.h>
 #include <netinet/tcp.h>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 
 class Util{
@@ -28,6 +30,12 @@ class Util{
         static void setNoDelay(int sockfd){
             int optval;
             setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY,
+                    &optval, sizeof(optval));
+        }
+
+        static void setReuseAddr(int sockfd){
+            int optval;
+            setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
                     &optval, sizeof(optval));
         }
 

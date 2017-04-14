@@ -2,14 +2,14 @@ SOURCEDIR := ./src
 INCLUDEDIR := ./include
 BUILD_DIR := ./bin
 CURRENTDIR := .
-EXE := $(BUILD_DIR)/server
+EXE := $(BUILD_DIR)/server1
 CC := g++
 LIBS := pthread
-DEBUGNAMES := DEBUG NONBLOCK 
+DEBUGNAMES := DEBUG NONBLOCK SHOWMSG ACK
 SOURCES := $(wildcard $(SOURCEDIR)/*.cpp $(SOURCEDIR)/*.c)
 OBJS := $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, $(SOURCES))) 
 RM := rm -rf
-CXXFLAGS := -Wall -g -O -std=c++11 -DDEBUG -DTCP_SOCKET
+CXXFLAGS := -Wall -g -O -std=c++11 -DDEBUG 
 
 start: prepare $(EXE)
 

@@ -15,10 +15,13 @@
 #include "SockConnector.h"
 
 #include "Log.h"
+#include "DefineVal.h"
 
 Epoll::Epoll():
     _epollfd(epoll_create(FDSIZE))
 {
+    bzero(buf, RECVMAXSIZE);
+    bzero(&_threadMsg, sizeof(threadMsg));
 }
 
 Epoll::~Epoll(){
@@ -60,10 +63,10 @@ void Epoll::handleEvents(int eventNum, int listenfd){
     for(int i = 0; i < eventNum; i++){
         fd = events[i].data.fd;
 
-        if((fd == listenfd) && (events[i].events & EPOLLIN)){
-            handleAccept(listenfd);
+        if(events[i].events & EPOLLRDHUP){
+            close(fd);
+            deleteEvent(fd, EPOLLIN);
         }
-
         else if(events[i].events & EPOLLIN){
             //TODO: add query num
             int nread;
@@ -86,9 +89,14 @@ void Epoll::handleEvents(int eventNum, int listenfd){
                 }
                 else{
                     struct threadMsg server2Msg;
+
                     //TODO: push it to queue which
                     //the send thread controls
                 }
+                bzero(&_threadMsg, sizeof(threadMsg));
+            }
+            else if(fd == listenfd){
+                handleAccept(listenfd);
             }
             else{//if the msg come from client
                 //struct it and send it to server2
@@ -105,11 +113,14 @@ void Epoll::handleEvents(int eventNum, int listenfd){
                 }
                 else{
                     //TODO:struct threadMsg and push it to task queue
+//                    std::cout << buf << std::endl;
                     struct threadMsg tempMsg;
-                    std::string msgStr = std::string(buf);
+//                    std::string msgStr = std::string(buf);
                     tempMsg.epollfd = _epollfd;
                     tempMsg.cliMsg.clientAcceptFd = fd;
-                    memcpy(tempMsg.cliMsg.msg, msgStr.c_str(), RECVMAXSIZE);
+                    bzero(tempMsg.cliMsg.msg, RECVMAXSIZE);
+                    memcpy(tempMsg.cliMsg.msg, buf, nread);
+                    tempMsg.cliMsg.length = nread;
                     tempMsg.svrProMsg.serverConnectFd
                         = SockConnector::_sockfd;
 //                   tempMsg.svrProMsg.md5Result = true;
@@ -117,9 +128,11 @@ void Epoll::handleEvents(int eventNum, int listenfd){
                     tempMsg.event = events[i];
 
                     _pool->addTaskToQueue(tempMsg);
-
+#ifdef ACK
                     modifyEvent(fd, EPOLLOUT);  //send ack to client
+#endif /*ACK*/
                 }
+                bzero(buf, RECVMAXSIZE);
             }
         }
 
@@ -166,21 +179,21 @@ void Epoll::handleAccept(int listenfd){
 
 void Epoll::addEvent(const int &fd, const int &state){
     struct epoll_event ev;
-    ev.events = state;
+    ev.events = state | EPOLLET;
     ev.data.fd = fd;
     epoll_ctl(_epollfd, EPOLL_CTL_ADD, fd, &ev);
 }
 
 void Epoll::deleteEvent(const int &fd, const int &state){
     struct epoll_event ev;
-    ev.events = state;
+    ev.events = state | EPOLLET;
     ev.data.fd = fd;
     epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, &ev);
 }
 
 void Epoll::modifyEvent(const int &fd, const int &state){
     struct epoll_event ev;
-    ev.events = state;
+    ev.events = state | EPOLLET;
     ev.data.fd = fd;
     epoll_ctl(_epollfd, EPOLL_CTL_MOD, fd, &ev);
 }

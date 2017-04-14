@@ -20,10 +20,11 @@ void WorkThread::run(){
     while(true){
         threadMsg msg;
         msg = _pool->getTaskFromQueue();
-
-        int server2fd = msg.svrProMsg.serverConnectFd;
-        //transmit the msg from client to server2
-        Util::writeMsgToSock(server2fd, &msg, sizeof(threadMsg));
+        //TODO:business logic
+        _pool->_writeMsgThread->addMsgToWriteMsgQueue(msg);
+//        int server2fd = msg.svrProMsg.serverConnectFd;
+//        //transmit the msg from client to server2
+//        Util::writeMsgToSock(server2fd, &msg, sizeof(threadMsg));
 
         //TODO: Acknowlegement Control
     }

@@ -4,6 +4,8 @@
  * */
 #include <iostream>
 
+#include <string.h>
+
 #include "ThreadPool.h"
 
 ThreadPool::ThreadPool(std::vector<WorkThread>::size_type num) :
@@ -27,8 +29,23 @@ ThreadPool::~ThreadPool(){
     }
 }
 
+void ThreadPool::getSendMsgThreadInfo(
+        WriteMsgThread *writeMsgThread){
+    if(!writeMsgThread){
+#ifdef DEBUG
+        std::cout << "sendMsgThread invalid" << std::endl;
+#endif /*DEBUG*/
+    }
+    _writeMsgThread = writeMsgThread;
+}
+
 void ThreadPool::addTaskToQueue(const threadMsg &msg){
     _mutex.lock();
+#ifdef SHOWMSG
+//    char dst[msg.cliMsg.length];
+//    memcpy(dst, msg.cliMsg.msg, msg.cliMsg.length);
+    std::cout << msg.cliMsg.msg <<std::endl;
+#endif /*SHOWMSG*/
     _threadMsgQueue.push(msg);
     _cond.signal();
     _mutex.unlock();
@@ -40,10 +57,12 @@ threadMsg ThreadPool::getTaskFromQueue(){
     while(_threadMsgQueue.empty()){
         _cond.wait();
     }
-    _mutex.unlock();
+
     threadMsg msg;
     msg = _threadMsgQueue.front();
     _threadMsgQueue.pop();
+
+    _mutex.unlock();
 
 
     return msg;

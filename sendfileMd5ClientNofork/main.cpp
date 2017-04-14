@@ -86,14 +86,14 @@ int main(){
 
 
 //    string filename = "../../../Downloads/Md5.h";
-    string filename = "Md5.h";
+//    string filename = "Md5.h";
     FILE *fp = fopen(filename.c_str(), "r");
     if(fp == NULL){
         cout << filename << " not found" << endl;
         exit(-1);
     }
 
-    std::cout << "makefile Md5 = " << md5file(filename.c_str()) << std::endl;
+//    std::cout << "makefile Md5 = " << md5file(filename.c_str()) << std::endl;
 
     char buffer[BUFFER_SIZE];
     bzero(buffer, sizeof(buffer));

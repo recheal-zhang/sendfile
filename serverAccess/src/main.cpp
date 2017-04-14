@@ -7,6 +7,7 @@
 #include "SOCKAcceptor.h"
 #include "LogThread.h"
 #include "SockConnector.h"
+#include "WriteMsgThread.h"
 
 using namespace std;
 
@@ -19,7 +20,11 @@ int main(){
             SVRADDRESS,
             SVRPORT);
 
+    WriteMsgThread writeMsgThread;
+    writeMsgThread.start();
+
     ThreadPool threadPool(MAXTHREADNUM);
+    threadPool.getSendMsgThreadInfo(&writeMsgThread);
     threadPool.start();
 
     LogThread logThread;
@@ -30,6 +35,7 @@ int main(){
     SOCKAcceptor sockAcceptor;
     //sockAcceptor.bindListen(_inetAddr);
     sockAcceptor.sockBindListen();
+
     Epoll epollContrller;
     epollContrller.getSockAcceptorInfo(&sockAcceptor);
     epollContrller.getThreadPoolInfo(&threadPool);

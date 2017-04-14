@@ -2,12 +2,14 @@
 #define _EPOLL_H_
 
 #include <iostream>
+#include <string>
 #include <sys/epoll.h>
 #include <sys/time.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include "DefineVal.h"
+#include "Md5.h"
 
 #define EPOLLEVENTS 100
 #define FDSIZE 1000
@@ -15,6 +17,8 @@
 
 struct timeval startval;
 struct timeval endval;
+
+std::string filename = "../../../Downloads/1.rmvb";
 
 void do_epoll(int connectfd, char *buf, FILE *fp);
 
@@ -119,6 +123,7 @@ void do_write(int epollfd, int fd, char *buf, FILE *fp){
         sendCmd(fd, endFileMsg.c_str(), endFileMsg.size(), 0);
         fclose(fp);
         close(fd);
+        std::cout << "makefile Md5 = " << md5file(filename.c_str()) << std::endl;
         exit(0);
 
     }
@@ -136,6 +141,7 @@ void do_write(int epollfd, int fd, char *buf, FILE *fp){
 
         fclose(fp);
         close(fd);
+        std::cout << "makefile Md5 = " << md5file(filename.c_str()) << std::endl;
         exit(0);
     }
 

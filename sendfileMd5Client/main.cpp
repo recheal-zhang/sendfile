@@ -78,7 +78,9 @@ int listenInit(){
 }
 
 void sendCmd(int sockfd, const void *buffer, size_t len, int flags){
+#ifdef SHOWMSG
     std::cout << string(static_cast<const char*>(buffer)) << std::endl;
+#endif /*SHOWMSG*/
     if(send(sockfd, buffer, len, flags) < 0){
 #ifdef DEBUG
         std:: cout << "send cmd error" << std::endl;
@@ -90,18 +92,17 @@ int main(){
     cout << "client start" << endl;
     int sockfd = listenInit();
 
-    string filename = "Md5.h";
+    string filename = "../../../Downloads/1.rmvb";
     FILE *fp = fopen(filename.c_str(),"r");
     if(fp == NULL){
         cout << filename << "not found" << endl;
         exit(-1);
     }
 
-    cout << "client Md5 = " << md5file(filename.c_str()) << endl;
 
     //send transfer file msg
-//    string transferFileMsg = "7E4500007E";
-//    sendCmd(sockfd, transferFileMsg.c_str(), transferFileMsg.size(), 0);
+    string transferFileMsg = "7E4500007E";
+    sendCmd(sockfd, transferFileMsg.c_str(), transferFileMsg.size(), 0);
 
 
 
@@ -116,17 +117,18 @@ int main(){
     bzero(buf,sizeof(buf));
     while((fileBlockLen = fread(buf, sizeof(char), BUFFER_SIZE, fp)) > 0){
         sendCmd(sockfd, buf, fileBlockLen, 0);
-        usleep(6);
-        bzero(buf, sizeof(buf));
+        usleep(4);
+        bzero(buf, BUFFER_SIZE);
     }
 
     fclose(fp);
+
+
+    string endFileMsg = "7E4511117E";
+    sendCmd(sockfd, endFileMsg.c_str(), endFileMsg.size(), 0);
     close(sockfd);
 
-//
-//    string endFileMsg = "7E4511117E";
-//    sendCmd(sockfd, endFileMsg.c_str(), endFileMsg.size(), 0);
-//    close(sockfd);
+    cout << "client Md5 = " << md5file(filename.c_str()) << endl;
 
 
 

@@ -111,6 +111,7 @@ int socket_bind(const char *ip, int port){
     if(bind(listenfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == -1){
         sherror("bind error");
     }
+    Util::setReuseAddr(listenfd);
     return listenfd;
 }
 
@@ -167,6 +168,7 @@ void handle_accept(int epollfd, int listenfd){
     std::cout << "server 1 connect" << std::endl;
     Util::setNonblock(clifd);
     Util::setNoDelay(clifd);
+    Util::setReuseAddr(clifd);
     if(clifd == -1){
         std::cout << "accept error" << std::endl;
     }
@@ -190,28 +192,33 @@ void do_read(int epollfd, int fd, threadMsg *buf){
         delete_event(epollfd, fd, EPOLLIN);
     }
     else{
+//        char bufMsg[buf->cliMsg.length];
+//        memcpy(bufMsg, buf->cliMsg.msg, buf->cliMsg.length);
         std::string tempMsg = std::string(buf->cliMsg.msg);
         std::size_t found = tempMsg.find("7E4500007E");
-//        if(found != std::string::npos){ //touch file cmd
+        if(found != std::string::npos){ //touch file cmd
 
-        string start("7E4500007E");
-        if(tempMsg == start){
+//        string start("7E4500007E");
+//        if(tempMsg == start){
             char buffer[10];
             snprintf(buffer, 10, "%d",
                     buf->cliMsg.clientAcceptFd);
             std::string fdStr = std::string(buffer);
             std::string filename = fdStr + ".temp";
+            if(gFile[buf->cliMsg.clientAcceptFd] != 0){
+                fclose(gFile[buf->cliMsg.clientAcceptFd]);
+                gFile[buf->cliMsg.clientAcceptFd] = 0;
+            }
             gFile[buf->cliMsg.clientAcceptFd] = fopen(
-                    filename.c_str(), "wr");
-//            gFileFd[buf->cliMsg.clientAcceptFd] = open(
-//                    filename.c_str(),
-//                    O_WRONLY | O_CREAT | O_TRUNC,
-//                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+                    filename.c_str(), "w");
+            gFileFd[buf->cliMsg.clientAcceptFd] = open(
+                    filename.c_str(),
+                    O_WRONLY | O_CREAT | O_TRUNC,
+                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
             std::cout << "openfile" << std::endl;
         }
         else if((found = tempMsg.find("7E4511117E"))
                 != std::string::npos){
-            //end file recv
             if(gFile[buf->cliMsg.clientAcceptFd] != 0){
                 char buffer[10];
                 snprintf(buffer, 10, "%d",
@@ -221,19 +228,20 @@ void do_read(int epollfd, int fd, threadMsg *buf){
                 std::cout << "file's Md5 = " <<
                     md5file(filename.c_str()) << std::endl;
 
-//                close(gFileFd[buf->cliMsg.clientAcceptFd]);
-//                gFileFd[buf->cliMsg.clientAcceptFd] = 0;
+                close(gFileFd[buf->cliMsg.clientAcceptFd]);
+                gFileFd[buf->cliMsg.clientAcceptFd] = 0;
 
                 fclose(gFile[buf->cliMsg.clientAcceptFd]);
                 gFile[buf->cliMsg.clientAcceptFd] = 0;
-                //Md5
+ //TODO:Md5
             }
         }
         else{
+            std::cout << buf->cliMsg.msg;
             if(gFile[buf->cliMsg.clientAcceptFd] !=0)
                 Util::writeMsgToFile(gFile[buf->cliMsg.clientAcceptFd],
-                        tempMsg.c_str(),
-                        tempMsg.size());
+                        buf->cliMsg.msg,
+                        buf->cliMsg.length);
             else{
                 std::cout << "gFile not create" << std::endl;
             }

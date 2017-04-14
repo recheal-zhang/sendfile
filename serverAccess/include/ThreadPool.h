@@ -16,6 +16,7 @@
 #include "MutexLock.h"
 #include "Condition.h"
 #include "DefineVal.h"
+#include "WriteMsgThread.h"
 
 class Epoll;
 
@@ -25,6 +26,7 @@ class ThreadPool : public NonCopyable{
         ThreadPool(std::vector<WorkThread>::size_type);
         ~ThreadPool();
 
+        void getSendMsgThreadInfo(WriteMsgThread *);
         void addTaskToQueue(const threadMsg &);
         threadMsg getTaskFromQueue();
 
@@ -37,7 +39,7 @@ class ThreadPool : public NonCopyable{
             getThreadQuantity() const;
 
         std::queue<threadMsg> threadMsgQueue;
-
+        WriteMsgThread *_writeMsgThread;
     private:
         std::vector<WorkThread>::size_type _threadNum;
         std::vector<WorkThread> _threadPool;
