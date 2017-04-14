@@ -16,7 +16,7 @@
 #define LISTENQ 5
 #define FDSIZE 1000
 #define EPOLLEVENTS 100
-#define MAXTHREADNUM 10
+#define MAXTHREADNUM 1
 #define TIMEOUT 500
 
 #define SVRADDRESS "127.0.0.1"
