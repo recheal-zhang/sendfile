@@ -18,7 +18,7 @@
 struct timeval startval;
 struct timeval endval;
 
-std::string filename = "../../../Downloads/victory.ts";
+std::string filename = "../../../Downloads/1.rmvb";
 //std::string filename = "Md5.h";
 void do_epoll(int connectfd, char *buf, FILE *fp);
 
@@ -87,6 +87,7 @@ void handle_events(int epollfd, struct epoll_event *events,
 }
 
 void do_read(int epollfd, int fd, char *buf){
+    bzero(buf, BUFFER_SIZE);
     int nread;
     if((nread = read(fd, buf, BUFFER_SIZE)) < 0){
 #ifdef DEBUG
@@ -127,7 +128,7 @@ void do_write(int epollfd, int fd, char *buf, FILE *fp){
         exit(0);
 
     }
-    if(fileBlockLen == 0){
+    else if(fileBlockLen == 0){
 #ifdef DEBUG
         std::cout << "fread end in epoll" << std::endl;
 #endif /*DEBUG*/
@@ -144,10 +145,12 @@ void do_write(int epollfd, int fd, char *buf, FILE *fp){
         std::cout << "makefile Md5 = " << md5file(filename.c_str()) << std::endl;
         exit(0);
     }
+    else{
+        sendMsg(fd, buf, fileBlockLen, 0);
 
-    sendMsg(fd, buf, fileBlockLen, 0);
+        modify_event(epollfd, fd, EPOLLIN);
+    }
 
-    modify_event(epollfd, fd, EPOLLIN);
 }
 
 void add_event(int epollfd, int fd, int state){

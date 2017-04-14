@@ -220,6 +220,9 @@ void do_read(int epollfd, int fd, threadMsg *buf){
         else if((found = tempMsg.find("7E4511117E"))
                 != std::string::npos){
             if(gFile[buf->cliMsg.clientAcceptFd] != 0){
+                fclose(gFile[buf->cliMsg.clientAcceptFd]);
+                gFile[buf->cliMsg.clientAcceptFd] = 0;
+
                 char buffer[10];
                 snprintf(buffer, 10, "%d",
                         buf->cliMsg.clientAcceptFd);
@@ -227,13 +230,6 @@ void do_read(int epollfd, int fd, threadMsg *buf){
                 std::string filename = fdStr + ".temp";
                 std::cout << "file's Md5 = " <<
                     md5file(filename.c_str()) << std::endl;
-
-                close(gFileFd[buf->cliMsg.clientAcceptFd]);
-                gFileFd[buf->cliMsg.clientAcceptFd] = 0;
-
-                fclose(gFile[buf->cliMsg.clientAcceptFd]);
-                gFile[buf->cliMsg.clientAcceptFd] = 0;
- //TODO:Md5
             }
         }
         else{
