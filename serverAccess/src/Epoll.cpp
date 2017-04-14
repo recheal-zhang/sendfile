@@ -16,6 +16,7 @@
 
 #include "Log.h"
 #include "DefineVal.h"
+#include "WriteMsgThread.h"
 
 Epoll::Epoll():
     _epollfd(epoll_create(FDSIZE))
@@ -89,7 +90,8 @@ void Epoll::handleEvents(int eventNum, int listenfd){
                 }
                 else{
                     struct threadMsg server2Msg;
-
+                    //TODO:send signal to WriteMsgThread, send msg to server
+                    modifyEvent(fd, EPOLLOUT);
                     //TODO: push it to queue which
                     //the send thread controls
                 }
@@ -137,20 +139,28 @@ void Epoll::handleEvents(int eventNum, int listenfd){
         }
 
         else if(events[i].events & EPOLLOUT){
-            //TODO: buf is NULL
-            int nwrite;
-            std::string ack = "7E457E";
-            if((nwrite = write(fd, ack.c_str(), ack.size())) < 0){
-#ifdef DEBUG
-                std::cout << "write error in epoll" << std::endl;
-#endif /*DEBUG*/
-                deleteEvent(fd, EPOLLOUT);
-                close(fd);
-            }
-            else{
+            if(fd == SockConnector::_sockfd){ //come from server
+                //TODO: WriteThreadMsg
+                WriteMsgThread::addServer2MsgCount();
                 modifyEvent(fd, EPOLLIN);
             }
-        }
+            else{
+                //TODO: buf is NULL
+                int nwrite;
+                std::string ack = "7E457E";
+                if((nwrite = write(fd, ack.c_str(), ack.size())) < 0){
+    #ifdef DEBUG
+                    std::cout << "write error in epoll" << std::endl;
+    #endif /*DEBUG*/
+                    deleteEvent(fd, EPOLLOUT);
+                    close(fd);
+                }
+                else{
+                    modifyEvent(fd, EPOLLIN);
+                }
+
+            }
+       }
 
         else if((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP)){
 #ifdef DEBUG

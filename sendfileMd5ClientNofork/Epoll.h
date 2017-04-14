@@ -18,8 +18,8 @@
 struct timeval startval;
 struct timeval endval;
 
-std::string filename = "../../../Downloads/1.rmvb";
-
+std::string filename = "../../../Downloads/victory.ts";
+//std::string filename = "Md5.h";
 void do_epoll(int connectfd, char *buf, FILE *fp);
 
 void handle_events(int epollfd, struct epoll_event *events,

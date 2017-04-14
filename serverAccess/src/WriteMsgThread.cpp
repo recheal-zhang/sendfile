@@ -6,6 +6,11 @@
 #include "WriteMsgThread.h"
 #include "Util.h"
 
+MutexLock WriteMsgThread::_server2MsgMutex;
+Condition WriteMsgThread::_server2MsgCond(
+        &(WriteMsgThread::_server2MsgMutex));
+int WriteMsgThread::_server2MsgCount = 1;
+
 WriteMsgThread::WriteMsgThread() :
     _sendMsgQueue(),
     _mutex(),
@@ -14,6 +19,23 @@ WriteMsgThread::WriteMsgThread() :
 }
 
 WriteMsgThread::~WriteMsgThread(){}
+
+void WriteMsgThread::addServer2MsgCount(){
+    WriteMsgThread::_server2MsgMutex.lock();
+    ++WriteMsgThread::_server2MsgCount;
+    WriteMsgThread::_server2MsgCond.signal();
+    WriteMsgThread::_server2MsgMutex.unlock();
+}
+
+
+void WriteMsgThread::subServer2MsgCount(){
+    WriteMsgThread::_server2MsgMutex.lock();
+    while(WriteMsgThread::_server2MsgCount <= 0){
+        WriteMsgThread::_server2MsgCond.wait();
+    }
+    --WriteMsgThread::_server2MsgCount;
+    WriteMsgThread::_server2MsgMutex.unlock();
+}
 
 void WriteMsgThread::run(){
     detach();
@@ -37,6 +59,7 @@ void WriteMsgThread::addMsgToWriteMsgQueue(const threadMsg &msg){
 threadMsg WriteMsgThread::getMsgFromWriteMsgQueue(){
     threadMsg msg;
     _mutex.lock();
+    WriteMsgThread::subServer2MsgCount();
     while(_sendMsgQueue.empty()){
         _cond.wait();
     }

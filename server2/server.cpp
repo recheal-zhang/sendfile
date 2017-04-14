@@ -237,7 +237,7 @@ void do_read(int epollfd, int fd, threadMsg *buf){
             }
         }
         else{
-            std::cout << buf->cliMsg.msg;
+//            std::cout << buf->cliMsg.msg;
             if(gFile[buf->cliMsg.clientAcceptFd] !=0)
                 Util::writeMsgToFile(gFile[buf->cliMsg.clientAcceptFd],
                         buf->cliMsg.msg,
@@ -246,19 +246,23 @@ void do_read(int epollfd, int fd, threadMsg *buf){
                 std::cout << "gFile not create" << std::endl;
             }
         }
+        modify_event(epollfd, fd, EPOLLOUT);
     }
 }
 
 void do_write(int epollfd, int fd, threadMsg *buf){
     int nwrite;
-    nwrite = write(fd, buf, sizeof(threadMsg));
+    std::string ack = "7E457E";
+    bzero(buf->cliMsg.msg, RECVMAXSIZE);
+    memcpy(buf->cliMsg.msg, ack.c_str(), ack.size());
+    nwrite = write(fd, buf, sizeof(buf));
     if(nwrite ==-1){
         std::cout << "write error" << std::endl;
         close(fd);
         delete_event(epollfd, fd, EPOLLOUT);
     }
     else{
- //       modify_event(epollfd, fd, EPOLLIN);
+        modify_event(epollfd, fd, EPOLLIN);
     }
 }
 

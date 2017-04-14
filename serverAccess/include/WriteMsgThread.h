@@ -22,11 +22,17 @@ class WriteMsgThread : public Thread{
         void addMsgToWriteMsgQueue(const threadMsg &);
         threadMsg getMsgFromWriteMsgQueue();
 
+        static void addServer2MsgCount();
+        static void subServer2MsgCount();
+
         std::queue<threadMsg> _sendMsgQueue;
 
     private:
         MutexLock _mutex;
         Condition _cond;
+        static MutexLock _server2MsgMutex;
+        static Condition _server2MsgCond;
+        static int _server2MsgCount;
 };
 
 #endif /*_WRITEMSGTHREAD_H_*/
